@@ -1,0 +1,76 @@
+version: "3.9"
+
+services:
+  webserver:
+    image: nginx:latest
+    container_name: webserver_docker
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "1011:80"
+    volumes:
+      - ./src:/var/www
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    links:
+      - php
+    networks:
+      - laravel_docker-networks
+
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: php:8.2-fpm
+    container_name: php_docker
+    restart: unless-stopped
+    tty: true
+    environment:
+      SERVICE_NAME: php
+      SERVICE_TAGS: dev
+    working_dir: /var/www
+    volumes:
+      - ./src:/var/www
+      - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      - laravel_docker-networks
+
+  db:
+    image: mysql:latest
+    container_name: db_docker
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "4306:3306"
+    environment:
+      MYSQL_DATABASE: db_docker
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user
+      MYSQL_ROOT_PASSWORD: root
+      SERVICE_NAME: mysql
+      SERVICE_TAGS: dev
+    volumes:
+      - db:/var/lib/mysql
+      - ./mysql/my.conf:/etc/mysql/my.conf
+    networks:
+      - laravel_docker-networks
+
+  phpmyadmin:
+    depends_on:
+      - db
+    image: phpmyadmin:latest
+    container_name: phpmyadmin_docker
+    restart: unless-stopped
+    ports:
+      - "1002:80"
+    environment:
+      PMA_HOST: db
+    networks:
+      - laravel_docker-networks
+
+networks:
+  laravel_docker-networks:
+    driver: bridge
+
+volumes:
+  db:
+    driver: local
