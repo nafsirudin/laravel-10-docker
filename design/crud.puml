@@ -1,0 +1,6 @@
+@startuml
+  entity Articles {
+    * id: Integer,
+    title: Varchar
+  }
+@enduml

@@ -1,5 +1,11 @@
 FROM php:8.2-fpm
 
+#tambahan
+# Arguments defined in docker-compose.yml
+ARG user
+ARG uid
+#end
+
 WORKDIR /var/www
 
 # library linux
@@ -26,9 +32,17 @@ RUN docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg \
 RUN groupadd -g 1000 www
 RUN useradd -u 1000 -ms /bin/bash -g www www
 
+#tambahan
+# Create system user to run Composer and Artisan Commands
+RUN useradd -G www-data,root -u $uid -d /home/www www
+RUN mkdir -p /home/www/.composer && \
+    chown -R www:www /home/www
+#end
+
 COPY . /var/www
 
 COPY --chown=www:www . /var/www
+
 
 USER www
 
